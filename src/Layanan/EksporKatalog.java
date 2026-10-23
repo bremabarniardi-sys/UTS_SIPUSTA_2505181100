@@ -1,34 +1,39 @@
 package layanan;
 
 import model.Koleksi;
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class EksporKatalog {
     
-    public void ekspor(List<Koleksi> daftarKoleksi) {
-        try (PrintWriter penulis = new PrintWriter(new FileWriter("katalog.txt"))) {
+    // WAJIB: Menggunakan BufferedWriter dan Files.newBufferedWriter (Java NIO)
+    public void ekspor(List<Koleksi> dataKoleksi) {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("katalog.txt"))) {
             
-            penulis.printf("%-7s | %-34s | %-13s | %-4s | %-11s | %-27s | %s%n",
+            String header = String.format("%-7s | %-34s | %-13s | %-4s | %-11s | %-27s | %s%n",
                     "KODE", "JUDUL", "JENIS", "THN", "STATUS", "LOKASI ARSIP", "KETERANGAN");
-            penulis.println("-------------------------------------------------------------------------------------------------------------------------------------");
+            writer.write(header);
+            writer.write("-------------------------------------------------------------------------------------------------------------------------------------\n");
 
-            for (Koleksi k : daftarKoleksi) {
-                penulis.printf("%-7s | %-34s | %-13s | %-4d | %-11s | %-27s | %s%n",
-                        k.getKode(),
-                        k.getJudul(),
-                        k.jenisKoleksi(),
-                        k.getTahunTerbit(),
-                        k.isLayakDipinjam() ? "Layak" : "Tidak layak",
-                        k.lokasiArsip(),
-                        k.keterangan());
+            for (Koleksi item : dataKoleksi) {
+                String statusStr = item.isLayakDipinjam() ? "Layak" : "Tidak layak";
+                String baris = String.format("%-7s | %-34s | %-13s | %-4d | %-11s | %-27s | %s%n",
+                        item.getKode(),
+                        item.getJudul(),
+                        item.jenisKoleksi(),
+                        item.getTahunTerbit(),
+                        statusStr,
+                        item.lokasiArsip(),
+                        item.keterangan());
+                writer.write(baris);
             }
-            System.out.println("Katalog berhasil diekspor ke berkas \"katalog.txt\".");
+            System.out.println("Data katalog berhasil diekspor ke berkas 'katalog.txt' (NIO API).");
             
-        } catch (IOException e) {
-            System.out.println("Gagal mengekspor katalog: " + e.getMessage());
+        } catch (IOException ex) {
+            System.out.println(String.format("Gagal mengekspor data katalog: %s", ex.getMessage()));
         }
     }
 }

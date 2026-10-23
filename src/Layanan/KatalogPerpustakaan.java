@@ -11,55 +11,56 @@ import java.util.Comparator;
 import java.util.List;
 
 public class KatalogPerpustakaan {
-    private List<Koleksi> daftarKoleksi = new ArrayList<>();
+    private List<Koleksi> listKoleksi = new ArrayList<>();
 
-    public void tambah(Koleksi koleksi) {
-        daftarKoleksi.add(koleksi);
+    public void tambah(Koleksi itemBaru) {
+        listKoleksi.add(itemBaru);
     }
 
     public List<Koleksi> getDaftarKoleksi() {
-        return Collections.unmodifiableList(daftarKoleksi);
+        return Collections.unmodifiableList(listKoleksi);
     }
 
-    public Koleksi cari(String kode) {
-        for (Koleksi k : daftarKoleksi) {
-            if (k.getKode().equalsIgnoreCase(kode)) {
-                return k;
-            }
-        }
-        return null;
+    // WAJIB: Pencarian menggunakan Stream
+    public Koleksi cari(String idKoleksi) {
+        return listKoleksi.stream()
+                .filter(item -> item.getKode().equalsIgnoreCase(idKoleksi))
+                .findFirst()
+                .orElse(null);
     }
 
+    // WAJIB: Print menggunakan forEach
     public void cetakStatus() {
         System.out.printf("%-7s | %-34s | %-13s | %-4s | %s%n", 
                 "KODE", "JUDUL", "JENIS", "THN", "STATUS & DETAIL");
         System.out.println("---------------------------------------------------------------------------------------------------------");
         
-        for (Koleksi k : daftarKoleksi) {
-            String statusPinjam = k.isSedangDipinjam() ? "  >> SEDANG DIPINJAM" : "";
-            System.out.println(k.deskripsi() + statusPinjam);
-        }
-        System.out.println("Total koleksi: " + daftarKoleksi.size());
+        listKoleksi.forEach(item -> {
+            String penandaPinjam = item.isSedangDipinjam() ? "  >> SEDANG DIPINJAM" : "";
+            System.out.println(String.format("%s%s", item.deskripsi(), penandaPinjam));
+        });
+        System.out.println(String.format("Total koleksi: %d", listKoleksi.size()));
     }
 
-    public void urut(Comparator<Koleksi> comparator) {
-        daftarKoleksi.sort(comparator);
+    public void urut(Comparator<Koleksi> pembanding) {
+        listKoleksi.sort(pembanding);
     }
 
-    public void pinjam(String kode) throws PustakaException {
-        Koleksi k = cari(kode);
+    // WAJIB: Pengecekan error menggunakan if terpisah tanpa else
+    public void pinjam(String idKoleksi) throws PustakaException {
+        Koleksi target = cari(idKoleksi);
 
-        if (k == null) {
-            throw new PustakaException("Buku dengan kode " + kode + " tidak ditemukan. Silakan periksa kembali kode yang Anda masukkan.");
+        if (target == null) {
+            throw new PustakaException(String.format("[NIM 2505181100] Koleksi kode '%s' tidak ditemukan dalam sistem.", idKoleksi));
         }
-        if (k.isSedangDipinjam()) {
-            throw new KoleksiSedangDipinjamException("Maaf, \"" + k.getJudul() + "\" sedang dipinjam oleh anggota lain. Silakan pinjam koleksi lain atau tunggu sampai koleksi tersebut dikembalikan.");
+        if (target.isSedangDipinjam()) {
+            throw new KoleksiSedangDipinjamException(String.format("[NIM 2505181100] Terjadi kendala: '%s' sedang dipinjam oleh pemustaka lain.", target.getJudul()));
         }
-        if (!k.isLayakDipinjam()) {
-            throw new KoleksiTidakLayakException("Maaf, \"" + k.getJudul() + "\" belum dapat dipinjam karena " + k.alasanTidakLayak() + ".");
+        if (!target.isLayakDipinjam()) {
+            throw new KoleksiTidakLayakException(String.format("[NIM 2505181100] Terjadi kendala: '%s' belum dapat dipinjam karena %s.", target.getJudul(), target.alasanTidakLayak()));
         }
 
-        k.setSedangDipinjam(true);
-        System.out.println("Berhasil! \"" + k.getJudul() + "\" (" + k.getKode() + ") berhasil dipinjam.");
+        target.setSedangDipinjam(true);
+        System.out.println(String.format("Peminjaman berhasil! '%s' (%s) resmi tercatat dipinjam.", target.getJudul(), target.getKode()));
     }
 }

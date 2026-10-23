@@ -4,14 +4,14 @@ import model.Koleksi;
 import java.util.Comparator;
 
 public class UrutLayakLaluJudul implements Comparator<Koleksi> {
+    
+    // WAJIB: Menggunakan Boolean.compare(b.isLayakDipinjam(), a.isLayakDipinjam())
     @Override
     public int compare(Koleksi a, Koleksi b) {
-        // Tampilkan koleksi layak dipinjam lebih dulu
-        int hasilLayak = Boolean.compare(b.isLayakDipinjam(), a.isLayakDipinjam());
-        if (hasilLayak != 0) {
-            return hasilLayak;
+        int hasilStatus = Boolean.compare(b.isLayakDipinjam(), a.isLayakDipinjam());
+        if (hasilStatus != 0) {
+            return hasilStatus;
         }
-        // Jika status layak sama, urutkan berdasarkan judul (A-Z)
         return a.getJudul().compareToIgnoreCase(b.getJudul());
     }
 }
